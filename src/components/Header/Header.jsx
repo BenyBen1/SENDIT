@@ -17,7 +17,7 @@ import MenuIcon from '@mui/icons-material/Menu'; // For hamburger icon
 import Profile from "./Profile.jsx";
 
 const Header = () => {
-  const logo = "/public/SendIt.png"; // Ensure the path is correct
+  const logo = "/image/SendIt.png"; // Ensure the path is correct
   const [drawerOpen, setDrawerOpen] = useState(false); // State for Drawer visibility
 
   // Toggle the Drawer
@@ -82,8 +82,8 @@ const Header = () => {
             src={logo}
             alt="Sendit Logo"
             sx={{
-              width: 40,
-              height: 40,
+              width: 60,
+              height: 60,
             }}
           />
           <Typography
