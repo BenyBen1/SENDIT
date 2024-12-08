@@ -14,7 +14,7 @@ import {
   ListItemText 
 } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu'; // For hamburger icon
-import Profile from "./Profile.jsx";
+import Profile from "../Profile.jsx";
 
 const Header = () => {
   const logo = "/image/SendIt.png"; // Ensure the path is correct
