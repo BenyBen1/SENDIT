@@ -1,12 +1,18 @@
 import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 
 import HomePage from './Pages/homepage';
-import AdminPage from './Pages/Admin';
+import Account from './Pages/Account.jsx';
+import AdminPage from './Pages/Admin.jsx';
 
 function App() {
   return (
     <div className="App">
-      <HomePage />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/account" element={<Account />} />
+        <Route path="/admin" element={<AdminPage />} />
+      </Routes>
     </div>
   );
 }
