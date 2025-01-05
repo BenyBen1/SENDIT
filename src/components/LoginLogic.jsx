@@ -25,14 +25,17 @@ export default function Profile() {
     setOpen(false);
   };
 
-  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle form submission for Signup/Login
   const handleSubmit = () => {
+    if (!formData.email || !formData.password || (isSignUp && !formData.name)) {
+      alert("Please fill out all fields.");
+      return;
+    }
+
     if (isSignUp) {
       // Sign up logic
       const users = JSON.parse(localStorage.getItem("users")) || [];
@@ -48,10 +51,18 @@ export default function Profile() {
       }
     } else {
       // Login logic
+      const { email, password } = formData;
+
+      // Admin login
+      if (email === "admin@gmail.com" && password === "admin123") {
+        localStorage.setItem("loggedInUser", JSON.stringify({ email, isAdmin: true }));
+        navigate("/admin"); // Navigate to Admin page
+        return;
+      }
+
+      // Normal user login
       const users = JSON.parse(localStorage.getItem("users")) || [];
-      const loggedInUser = users.find(
-        (user) => user.email === formData.email && user.password === formData.password
-      );
+      const loggedInUser = users.find((user) => user.email === email && user.password === password);
 
       if (loggedInUser) {
         localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));

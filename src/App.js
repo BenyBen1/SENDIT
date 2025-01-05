@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 
 import HomePage from './Pages/homepage';
 import Account from './Pages/Account.jsx';
-import AdminPage from './Pages/Admin.jsx';
+import AdminPage from './Pages/AdminPage.jsx';
 
 function App() {
   return (
