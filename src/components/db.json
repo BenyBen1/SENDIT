@@ -5,12 +5,6 @@
       "trackingId": "12345",
       "itemName": "Sample Item",
       "deliveryDate": "2025-01-01"
-    },
-    {
-      "id": "7b07",
-      "trackingId": "540",
-      "itemName": "Tools",
-      "deliveryDate": "2025-06-17"
     }
   ]
 }
