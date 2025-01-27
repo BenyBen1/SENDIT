@@ -1,44 +1,29 @@
 import React, { useState, useEffect } from "react";
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
+  View,
+  Text,
+  FlatList,
   Switch,
-  Grid,
-  Collapse,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Select,
-  MenuItem,
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { Appbar, Card, Button, Menu, Divider } from "react-native-paper";
 import axios from "axios";
+import { useNavigation } from "@react-navigation/native";
 
 const AdminPage = () => {
-  const navigate = useNavigate();
+  const navigation = useNavigation();
 
-  // Customer data state
   const [customers, setCustomers] = useState([]);
   const [globalStatus, setGlobalStatus] = useState("Active");
   const [expanded, setExpanded] = useState(null);
 
-  // Fetch orders and transform into customers
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get("http://localhost:5000/orders"); // Replace with your orders endpoint
         const orders = response.data;
 
-        // Group orders by customerId
         const customerMap = orders.reduce((acc, order) => {
           const { customerId, customerName, customerEmail } = order;
           if (!acc[customerId]) {
@@ -46,7 +31,7 @@ const AdminPage = () => {
               id: customerId,
               name: customerName,
               email: customerEmail,
-              status: "Active", // Default status (can be changed dynamically)
+              status: "Active",
               orders: [],
             };
           }
@@ -54,7 +39,6 @@ const AdminPage = () => {
           return acc;
         }, {});
 
-        // Convert the map into an array of customers
         setCustomers(Object.values(customerMap));
       } catch (error) {
         console.error("Failed to fetch orders:", error);
@@ -63,13 +47,11 @@ const AdminPage = () => {
     fetchOrders();
   }, []);
 
-  // Handle global status toggle
   const handleGlobalStatusToggle = (status) => {
     setGlobalStatus(status);
     setCustomers(customers.map((customer) => ({ ...customer, status })));
   };
 
-  // Handle individual customer status toggle
   const handleCustomerStatusToggle = (id) => {
     setCustomers(
       customers.map((customer) =>
@@ -80,12 +62,10 @@ const AdminPage = () => {
     );
   };
 
-  // Expand customer details
   const handleExpandClick = (id) => {
     setExpanded(expanded === id ? null : id);
   };
 
-  // Handle order status change
   const handleOrderStatusChange = (customerId, trackingId, newStatus) => {
     setCustomers(
       customers.map((customer) =>
@@ -103,134 +83,99 @@ const AdminPage = () => {
     );
   };
 
-  return (
-    <Box>
-      {/* Top Navigation Bar */}
-      <AppBar position="static" sx={{ backgroundColor: "navy", mb: 4 }}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Admin Dashboard
-          </Typography>
-          <Button
-            color="inherit"
-            onClick={() => {
-              localStorage.removeItem("loggedInUser");
-              navigate("/");
-            }}
-          >
-            Logout
-          </Button>
-        </Toolbar>
-      </AppBar>
+  const renderCustomer = ({ item: customer }) => (
+    <Card style={styles.card}>
+      <Card.Content>
+        <Text style={styles.customerName}>{customer.name}</Text>
+        <Text style={styles.customerEmail}>{customer.email}</Text>
+        <Text style={styles.statusText}>
+          Status: <Text style={customer.status === "Active" ? styles.active : styles.inactive}>{customer.status}</Text>
+        </Text>
+      </Card.Content>
+      <Card.Actions>
+        <Switch
+          value={customer.status === "Active"}
+          onValueChange={() => handleCustomerStatusToggle(customer.id)}
+        />
+        <Button onPress={() => handleExpandClick(customer.id)}>
+          {expanded === customer.id ? "Hide Details" : "Show Details"}
+        </Button>
+      </Card.Actions>
+      {expanded === customer.id && (
+        <Card.Content>
+          <Text style={styles.orderHeader}>Order History</Text>
+          {customer.orders.map((order) => (
+            <View key={order.trackingId} style={styles.orderRow}>
+              <Text style={styles.orderText}>Tracking ID: {order.trackingId}</Text>
+              <Text style={styles.orderText}>Item: {order.itemName}</Text>
+              <Menu
+                visible={false}
+                onDismiss={() => {}}
+                anchor={<Button>{order.status}</Button>}
+              >
+                <Menu.Item onPress={() => handleOrderStatusChange(customer.id, order.trackingId, "In Transit")} title="In Transit" />
+                <Menu.Item onPress={() => handleOrderStatusChange(customer.id, order.trackingId, "Delivered")} title="Delivered" />
+              </Menu>
+            </View>
+          ))}
+        </Card.Content>
+      )}
+    </Card>
+  );
 
-      {/* Global Controls */}
-      <Box sx={{ mb: 4, px: 2 }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
-          Manage Customers
-        </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-          <Typography sx={{ mr: 2 }}>Set All Customers:</Typography>
+  return (
+    <View style={styles.container}>
+      <Appbar.Header>
+        <Appbar.Content title="Admin Dashboard" />
+        <Appbar.Action icon="logout" onPress={() => navigation.navigate("Login")} />
+      </Appbar.Header>
+
+      <View style={styles.globalControls}>
+        <Text style={styles.headerText}>Manage Customers</Text>
+        <View style={styles.buttonsRow}>
           <Button
-            variant={globalStatus === "Active" ? "contained" : "outlined"}
-            color="success"
-            sx={{ mr: 2 }}
-            onClick={() => handleGlobalStatusToggle("Active")}
+            mode={globalStatus === "Active" ? "contained" : "outlined"}
+            onPress={() => handleGlobalStatusToggle("Active")}
+            style={styles.button}
           >
             Active
           </Button>
           <Button
-            variant={globalStatus === "Inactive" ? "contained" : "outlined"}
-            color="error"
-            onClick={() => handleGlobalStatusToggle("Inactive")}
+            mode={globalStatus === "Inactive" ? "contained" : "outlined"}
+            onPress={() => handleGlobalStatusToggle("Inactive")}
+            style={styles.button}
           >
             Inactive
           </Button>
-        </Box>
-      </Box>
+        </View>
+      </View>
 
-      {/* Customer Cards */}
-      <Grid container spacing={3} sx={{ px: 2 }}>
-        {customers.map((customer) => (
-          <Grid item xs={12} sm={6} md={4} key={customer.id}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">{customer.name}</Typography>
-                <Typography variant="body2" color="textSecondary">
-                  {customer.email}
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Status:{" "}
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: customer.status === "Active" ? "green" : "red",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {customer.status}
-                  </Typography>
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Switch
-                  checked={customer.status === "Active"}
-                  onChange={() => handleCustomerStatusToggle(customer.id)}
-                  color="primary"
-                />
-                <Button size="small" color="primary" onClick={() => handleExpandClick(customer.id)}>
-                  {expanded === customer.id ? "Hide Details" : "Show Details"}
-                </Button>
-              </CardActions>
-              <Collapse in={expanded === customer.id}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2 }}>
-                    Order History
-                  </Typography>
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Tracking ID</TableCell>
-                          <TableCell>Item</TableCell>
-                          <TableCell>Status</TableCell>
-                          <TableCell>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {customer.orders.map((order) => (
-                          <TableRow key={order.trackingId}>
-                            <TableCell>{order.trackingId}</TableCell>
-                            <TableCell>{order.itemName}</TableCell>
-                            <TableCell>{order.status}</TableCell>
-                            <TableCell>
-                              <Select
-                                value={order.status}
-                                onChange={(e) =>
-                                  handleOrderStatusChange(
-                                    customer.id,
-                                    order.trackingId,
-                                    e.target.value
-                                  )
-                                }
-                                size="small"
-                              >
-                                <MenuItem value="In Transit">In Transit</MenuItem>
-                                <MenuItem value="Delivered">Delivered</MenuItem>
-                              </Select>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </CardContent>
-              </Collapse>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
+      <FlatList
+        data={customers}
+        renderItem={renderCustomer}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={styles.listContainer}
+      />
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  globalControls: { padding: 16 },
+  headerText: { fontSize: 20, marginBottom: 16 },
+  buttonsRow: { flexDirection: "row", justifyContent: "space-between" },
+  button: { marginHorizontal: 8 },
+  listContainer: { paddingHorizontal: 16 },
+  card: { marginBottom: 16 },
+  customerName: { fontSize: 18, fontWeight: "bold" },
+  customerEmail: { fontSize: 14, color: "gray" },
+  statusText: { marginTop: 8 },
+  active: { color: "green", fontWeight: "bold" },
+  inactive: { color: "red", fontWeight: "bold" },
+  orderHeader: { fontSize: 16, marginVertical: 8 },
+  orderRow: { marginVertical: 4 },
+  orderText: { fontSize: 14 },
+});
 
 export default AdminPage;
